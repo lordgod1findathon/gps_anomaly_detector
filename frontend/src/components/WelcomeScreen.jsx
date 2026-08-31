@@ -1,6 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function WelcomeScreen({ onEnterDashboard }) {
+  const [isExiting, setIsExiting] = useState(false);
+
+  const handleEnter = () => {
+    setIsExiting(true);
+    // Wait for the apple-style zoom transition animation to finish before unmounting
+    setTimeout(() => {
+      onEnterDashboard();
+    }, 800);
+  };
+
   return (
     <div style={{
       position: 'fixed',
@@ -17,10 +27,13 @@ export default function WelcomeScreen({ onEnterDashboard }) {
       zIndex: 9999,
       color: '#333',
       fontFamily: 'sans-serif',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      // Apple-style zoom and fade out effect
+      transform: isExiting ? 'scale(1.08)' : 'scale(1)',
+      opacity: isExiting ? 0 : 1,
+      transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
     }}>
 
-      {/* Content Box */}
       <div style={{
         position: 'relative',
         zIndex: 2,
@@ -30,7 +43,9 @@ export default function WelcomeScreen({ onEnterDashboard }) {
         border: '1px solid #E5DFD3',
         backgroundColor: '#FFFFFF',
         boxShadow: '0 20px 40px rgba(122, 32, 33, 0.08)',
-        borderRadius: '20px'
+        borderRadius: '20px',
+        transform: isExiting ? 'scale(0.95)' : 'scale(1)',
+        transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
       }}>
         <div style={{ 
           display: 'inline-block',
@@ -44,17 +59,17 @@ export default function WelcomeScreen({ onEnterDashboard }) {
           marginBottom: '20px',
           textTransform: 'uppercase'
         }}>
-          Fleet Intelligence Platform
+          Spatial Telemetry Intelligence
         </div>
 
         <h1 style={{ 
-          fontSize: '3rem', 
+          fontSize: '3.5rem', 
           margin: '0 0 15px 0', 
           fontWeight: '900', 
           color: '#7A2021', 
-          letterSpacing: '-0.5px'
+          letterSpacing: '-1px'
         }}>
-          FleetIntel Ops
+          WayWatch
         </h1>
 
         <p style={{ 
@@ -63,12 +78,11 @@ export default function WelcomeScreen({ onEnterDashboard }) {
           lineHeight: '1.6', 
           marginBottom: '35px' 
         }}>
-          Deploy real-time GPS telemetry anomaly detection. Monitor route deviations, analyze turn geometry vectors, and secure logistics operations with precision.
+          Unbothered monitoring. Real-time path deviation tracking, vector geometry checks, and zero noise anomaly detection.
         </p>
 
-        {/* Play / Initialize Button matching your theme */}
         <button
-          onClick={onEnterDashboard}
+          onClick={handleEnter}
           style={{
             padding: '16px 45px',
             backgroundColor: '#1E3F2B',
@@ -86,11 +100,11 @@ export default function WelcomeScreen({ onEnterDashboard }) {
           onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
           onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
         >
-          Initialize Dashboard →
+          Enter Dashboard →
         </button>
 
         <div style={{ marginTop: '30px', fontSize: '0.8rem', color: '#999' }}>
-          Interactive Map Telemetry / Spatial Baseline Analysis
+          Waywatch Systems / Status: Nominal
         </div>
       </div>
     </div>

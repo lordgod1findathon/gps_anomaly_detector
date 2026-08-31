@@ -14,7 +14,7 @@ const ManualCoords = () => {
     e.preventDefault();
     try {
       const coordinates = JSON.parse(jsonText);
-      const res = await logTrip({ base_route_name: routeName, coordinates });
+      const res = await logTrip({ route_id: routeName, trip_points: coordinates });
       setResponseResult(res.data);
     } catch (err) {
       alert('Invalid JSON format or server connection error.');
@@ -28,13 +28,13 @@ const ManualCoords = () => {
       
       <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <div>
-          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '6px', color: '#6B655E' }}>Target Base Route Name</label>
+          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '6px', color: '#6B655E' }}>Target Route ID</label>
           <input 
             type="text" 
-            placeholder="e.g., Daily Commute" 
+            placeholder="e.g., route_name" 
             value={routeName} 
             onChange={(e) => setRouteName(e.target.value)}
-            style={{ width: '100%', padding: '12px', background: '#F9F5F0', border: '1px solid #E5DFD3', borderRadius: '8px', boxSizing: 'border-box', outline: 'none', cursor: 'pointer' }}
+            style={{ width: '100%', padding: '12px', background: '#F9F5F0', border: '1px solid #E5DFD3', borderRadius: '8px', boxSizing: 'border-box', outline: 'none' }}
           />
         </div>
         <div>
@@ -46,15 +46,15 @@ const ManualCoords = () => {
             style={{ width: '100%', padding: '12px', background: '#F9F5F0', border: '1px solid #E5DFD3', borderRadius: '8px', fontFamily: 'monospace', boxSizing: 'border-box', outline: 'none' }}
           />
         </div>
-        <button type="submit" style={{ padding: '14px', background: '#7A2021', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+        <button type="submit" style={{ padding: '14px', background: '#7A2021', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
           RUN MANUAL ANALYSIS
         </button>
       </form>
 
       {responseResult && (
-        <div style={{ marginTop: '20px', padding: '15px', background: responseResult.anomaly_detected ? '#FFF5F5' : '#F0FDF4', border: `1px solid ${responseResult.anomaly_detected ? '#7A2021' : '#1E3F2B'}`, borderRadius: '8px' }}>
-          <h4 style={{ margin: '0 0 5px 0', color: responseResult.anomaly_detected ? '#7A2021' : '#1E3F2B' }}>
-            {responseResult.anomaly_detected ? 'Anomaly Detected' : 'Route Verified Normal'}
+        <div style={{ marginTop: '20px', padding: '15px', background: responseResult.is_anomaly ? '#FFF5F5' : '#F0FDF4', border: `1px solid ${responseResult.is_anomaly ? '#7A2021' : '#1E3F2B'}`, borderRadius: '8px' }}>
+          <h4 style={{ margin: '0 0 5px 0', color: responseResult.is_anomaly ? '#7A2021' : '#1E3F2B' }}>
+            {responseResult.is_anomaly ? 'Anomaly Detected' : 'Route Verified Normal'}
           </h4>
           <pre style={{ margin: 0, fontSize: '12px' }}>{JSON.stringify(responseResult, null, 2)}</pre>
         </div>
@@ -166,9 +166,9 @@ const Settings = () => {
 };
 
 export default function App() {
-  const [showWelcome, setShowWelcome] = useState(true); // Controls the landing screen state
+  const [showWelcome, setShowWelcome] = useState(true);
   const [activeTab, setActiveTab] = useState('live');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isNavHovered, setIsNavHovered] = useState(false);
 
   const renderContent = () => {
     switch(activeTab) {
@@ -182,7 +182,7 @@ export default function App() {
     }
   };
 
-  const NavItem = ({ id, icon, label }) => {
+  const NavItem = ({ id, label }) => {
     const isActive = activeTab === id;
     return (
       <div 
@@ -190,96 +190,87 @@ export default function App() {
         style={{
           backgroundColor: isActive ? '#EFE5D8' : 'transparent',
           color: isActive ? '#7A2021' : '#6B655E',
-          padding: '14px 20px',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '15px',
+          padding: '8px 16px',
+          borderRadius: '8px',
           fontWeight: isActive ? 'bold' : '500',
-          borderRight: isActive ? '5px solid #7A2021' : '5px solid transparent',
           cursor: 'pointer',
-          boxShadow: isActive ? '0 2px 5px rgba(0,0,0,0.05)' : 'none',
-          transition: 'all 0.2s ease-in-out'
+          fontSize: '0.9rem',
+          whiteSpace: 'nowrap',
+          transition: 'all 0.2s ease'
         }}
       >
-        <span style={{ fontSize: '1.2rem' }}>{icon}</span> {label}
+        {label}
       </div>
     );
   };
 
   return (
     <>
-      {/* Interactive Game-Themed Welcome Splash Screen */}
       {showWelcome && (
         <WelcomeScreen onEnterDashboard={() => setShowWelcome(false)} />
       )}
 
-      {/* Main Dashboard Application */}
-      <div style={{ display: 'flex', height: '100vh', backgroundColor: '#FFFFFF', color: '#333', fontFamily: 'sans-serif', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#FFFFFF', color: '#333', fontFamily: 'sans-serif', overflow: 'hidden' }}>
         
-        {/* Collapsible Sidebar */}
-        <div style={{ 
-          width: isSidebarOpen ? '280px' : '0px', 
-          backgroundColor: '#F9F5F0', 
-          borderRight: isSidebarOpen ? '1px solid #E5DFD3' : 'none', 
-          display: 'flex', 
-          flexDirection: 'column',
-          overflow: 'hidden',
-          transition: 'width 0.3s ease-in-out',
-          whiteSpace: 'nowrap'
-        }}>
-          <div style={{ padding: '30px 20px', display: 'flex', alignItems: 'center', gap: '15px', minWidth: '280px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#7A2021', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>FI</div>
-              <h1 style={{ color: '#7A2021', fontSize: '1.4rem', margin: 0, fontWeight: '900', letterSpacing: '0.5px' }}>FleetIntel</h1>
+        {/* Floating Top Bar that expands on hover */}
+        <div 
+          onMouseEnter={() => setIsNavHovered(true)}
+          onMouseLeave={() => setIsNavHovered(false)}
+          style={{
+            position: 'absolute',
+            top: '15px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#F9F5F0',
+            border: '1px solid #E5DFD3',
+            borderRadius: '30px',
+            padding: '10px 25px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+            zIndex: 1000,
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            maxHeight: '50px',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Logo / Brand always visible */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => setActiveTab('live')}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#7A2021', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '0.75rem' }}>WW</div>
+            <span style={{ color: '#7A2021', fontWeight: '900', fontSize: '1rem', letterSpacing: '0.5px' }}>WAYWATCH</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', padding: '0 15px', minWidth: '280px' }}>
-              <NavItem id="live" icon="🏠" label="Live Monitoring" />
-              <NavItem id="routes" icon="📍" label="Normal Routes" />
-              <NavItem id="manual" icon="⌨️" label="Manual Coordinates" />
-              <NavItem id="history" icon="🕒" label="Trip History" />
-              <NavItem id="analytics" icon="📊" label="Analytics" />
-              <NavItem id="settings" icon="⚙️" label="Settings" />
+          {/* Expandable Navigation Links (Hidden or compact until hovered) */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '5px',
+            opacity: isNavHovered ? 1 : 0.7,
+            transition: 'opacity 0.2s ease'
+          }}>
+            <NavItem id="live" label="Live" />
+            <NavItem id="routes" label="Baselines" />
+            <NavItem id="manual" label="Manual" />
+            <NavItem id="history" label="History" />
+            <NavItem id="analytics" label="Analytics" />
+            <NavItem id="settings" label="Settings" />
           </div>
         </div>
 
         {/* Main Content Area */}
         <div style={{ 
           flex: 1, 
-          padding: '30px 40px', 
+          padding: '80px 40px 30px 40px', // Extra top padding to account for floating topbar
           display: 'flex', 
           flexDirection: 'column', 
           overflowY: 'auto',
           scrollbarWidth: 'thin',
           scrollbarColor: '#E5DFD3 transparent'
         }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <button 
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                style={{
-                  background: '#F9F5F0',
-                  border: '1px solid #E5DFD3',
-                  borderRadius: '8px',
-                  padding: '10px 14px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  color: '#7A2021',
-                  fontSize: '1rem'
-                }}
-              >
-                {isSidebarOpen ? '◀ Collapse' : '▶ Menu'}
-              </button>
-              <h2 style={{ margin: 0, color: '#333', fontWeight: '800', fontSize: '1.8rem', textTransform: 'capitalize' }}>
-                {activeTab === 'live' ? 'Active Vehicle Feed' : `${activeTab.replace('-', ' ')} Feed`}
-              </h2>
-            </div>
-          </div>
-          
           {renderContent()}
-
         </div>
+
       </div>
     </>
   );
