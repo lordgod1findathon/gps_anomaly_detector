@@ -1,7 +1,10 @@
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('routes.urls')), # Connects to the urls.py we just made
+    path('base-route/', views.create_base_route, name='create_base_route'),
+    path('evaluate/', views.evaluate_trip, name='evaluate_trip'),
+    path('history/<str:route_id>/', views.get_trip_history, name='get_trip_history'),
+    path('trips/', views.get_all_trips, name='get_all_trips'), # New Global History
+    path('analytics/', views.get_analytics, name='get_analytics'), # New Analytics
 ]
