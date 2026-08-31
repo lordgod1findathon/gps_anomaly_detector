@@ -1,9 +1,14 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'http://localhost:8000/api/',
+    baseURL: 'http://127.0.0.1:8000/api/',
 });
 
-export const saveBaseRoute = (data) => API.post('base-route/', data);
-export const logTrip = (data) => API.post('log-trip/', data);
-export const fetchDashboard = () => API.get('dashboard/');
+// Matches POST /base-route/
+export const saveBaseRoute = (data) => API.post('/base-route/', data);
+
+// Matches POST /evaluate/
+export const logTrip = (data) => API.post('/evaluate/', data);
+
+// Matches GET /history/<route_id>/
+export const getHistory = (routeId) => API.get(`/history/${routeId}/`);
