@@ -13,53 +13,56 @@ export default function RouteManager() {
     if (points.length < 2) return alert('Click at least 2 points on the map to define a route!');
 
     try {
-      // Payload matches backend contract: { route_id, points }
       await saveBaseRoute({ route_id: routeId, points });
-      setStatus('BASE ROUTE SAVED SUCCESSFULLY ✅');
+      setStatus('BASELINE PATTERN COMMITTED SUCCESSFULLY');
       setTimeout(() => setStatus(null), 4000);
     } catch (error) {
       console.error(error);
-      setStatus('ERROR SAVING ROUTE ❌');
+      setStatus('ERROR COMMITTING BASELINE');
     }
   };
 
   return (
-    <div style={{ background: '#FFFFFF', border: '1px solid #E5DFD3', borderRadius: '16px', padding: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' }}>
-      <h2 style={{ color: '#7A2021', marginTop: 0, fontSize: '1.4rem', fontWeight: '800' }}>
-        Step 1: Establish Normal Baseline Route
-      </h2>
-      <p style={{ color: '#6B655E', marginBottom: '20px' }}>Save your baseline route here to compare future trips against.</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+      <div style={{ background: '#FFFFFF', padding: '30px 35px', border: '1px solid #111', borderRadius: '16px' }}>
+        <h2 style={{ color: '#111', marginTop: 0, fontSize: '1.6rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+          Baseline Route Registry
+        </h2>
+        <p style={{ color: '#666', margin: '5px 0 0 0', fontSize: '0.95rem' }}>Establish normative spatial corridors for recurring journeys and automated deviation auditing.</p>
+      </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#6B655E', fontWeight: 'bold', fontSize: '0.9rem' }}>Route Identifier (route_id)</label>
-            <input
-              type="text"
-              placeholder="e.g., route_name"
-              value={routeId}
-              onChange={(e) => setRouteId(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '14px', backgroundColor: '#F9F5F0', color: '#333', border: '1px solid #E5DFD3', borderRadius: '8px', fontSize: '1rem', outline: 'none' }}
-            />
-        </div>
+      <div style={{ background: '#FFFFFF', border: '1px solid #111', borderRadius: '16px', padding: '40px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+          <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#111', fontWeight: '700', fontSize: '0.8rem', letterSpacing: '1px' }}>ROUTE IDENTIFIER (ROUTE_ID)</label>
+              <input
+                type="text"
+                placeholder="e.g., sector_7_dispatch"
+                value={routeId}
+                onChange={(e) => setRouteId(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box', padding: '14px', backgroundColor: '#FAFAFA', color: '#111', border: '1px solid #ddd', outline: 'none', fontWeight: '600' }}
+              />
+          </div>
 
-        <div>
-          <label style={{ display: 'block', marginBottom: '8px', color: '#6B655E', fontWeight: 'bold', fontSize: '0.9rem' }}>Trace Baseline Route on Map</label>
-          <MapPicker points={points} setPoints={setPoints} lineColor="#1E3F2B" />
-        </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#111', fontWeight: '700', fontSize: '0.8rem', letterSpacing: '1px' }}>TRACE BASELINE CORRIDOR ON MAP</label>
+            <MapPicker points={points} setPoints={setPoints} isInteractive={true} />
+          </div>
 
-        <button
-          type="submit"
-          style={{ padding: '16px', cursor: 'pointer', backgroundColor: '#7A2021', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px', boxShadow: '0 4px 15px rgba(122, 32, 33, 0.2)' }}
-        >
-          SAVE BASELINE PATTERN
-        </button>
-      </form>
+          <button
+            type="submit"
+            style={{ padding: '16px', cursor: 'pointer', backgroundColor: '#111', color: '#fff', border: 'none', fontWeight: '700', fontSize: '0.9rem', letterSpacing: '1.5px', textTransform: 'uppercase' }}
+          >
+            COMMIT BASELINE PATTERN
+          </button>
+        </form>
 
-      {status && (
-        <div style={{ marginTop: '20px', textAlign: 'center', fontWeight: 'bold', padding: '15px', borderRadius: '8px', backgroundColor: status.includes('✅') ? '#F0FDF4' : '#FFF5F5', color: status.includes('✅') ? '#1E3F2B' : '#7A2021' }}>
-          {status}
-        </div>
-      )}
+        {status && (
+          <div style={{ marginTop: '20px', textAlign: 'center', fontWeight: '700', padding: '15px', borderRadius: '4px', backgroundColor: '#FAFAFA', border: '1px solid #111', color: '#111', letterSpacing: '1px', fontSize: '0.85rem' }}>
+            {status}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

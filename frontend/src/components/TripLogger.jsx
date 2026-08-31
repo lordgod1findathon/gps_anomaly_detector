@@ -3,7 +3,7 @@ import { saveBaseRoute, logTrip } from '../api';
 import MapPicker from './MapPicker';
 
 export default function TripLogger() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // 1: Baseline, 2: Verification
   const [routeId, setRouteId] = useState('');
   const [baselinePoints, setBaselinePoints] = useState([]);
   const [verifyPoints, setVerifyPoints] = useState([]);
@@ -16,9 +16,8 @@ export default function TripLogger() {
     if (baselinePoints.length < 2) return alert('Click at least 2 points on the map for the baseline path.');
 
     try {
-      // Matches POST /base-route/
       await saveBaseRoute({ route_id: routeId, points: baselinePoints });
-      setStatusMsg('Baseline path locked successfully.');
+      setStatusMsg('Baseline path successfully locked.');
       setStep(2);
     } catch (err) {
       console.error(err);
@@ -31,7 +30,6 @@ export default function TripLogger() {
     if (verifyPoints.length < 2) return alert('Click at least 2 points on the map for the verification path.');
 
     try {
-      // Matches POST /evaluate/
       const response = await logTrip({ route_id: routeId, trip_points: verifyPoints });
       setResult(response.data);
     } catch (error) {
@@ -50,112 +48,146 @@ export default function TripLogger() {
   };
 
   return (
-    <div style={{ background: '#FFFFFF', border: '1px solid #E5DFD3', borderRadius: '16px', padding: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ color: '#1E3F2B', margin: 0, fontSize: '1.4rem', fontWeight: '800' }}>
-          {step === 1 ? 'Step 1: Define & Save Baseline Path' : `Step 2: Trace Verification Path (${routeId})`}
-        </h2>
-        {step === 2 && (
-          <button 
-            onClick={resetAll}
-            style={{ background: '#F9F5F0', border: '1px solid #E5DFD3', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', color: '#7A2021' }}
-          >
-            Reset / Change Route ID
-          </button>
-        )}
-      </div>
-
-      {step === 1 ? (
-        <form onSubmit={handleSaveBaseline} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#6B655E', fontWeight: 'bold', fontSize: '0.9rem' }}>Route Identifier (route_id)</label>
-            <input
-              type="text"
-              placeholder="e.g., route_name"
-              value={routeId}
-              onChange={(e) => setRouteId(e.target.value)}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '14px', backgroundColor: '#F9F5F0', color: '#333', border: '1px solid #E5DFD3', borderRadius: '8px', fontSize: '1rem', outline: 'none' }}
-            />
+      {/* Top Status Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '24px 35px', border: '1px solid #111', borderRadius: '16px' }}>
+        <div>
+          <div style={{ fontSize: '0.75rem', fontWeight: '700', letterSpacing: '2px', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>
+            Live Telemetry Feed {routeId ? `— [${routeId}]` : ''}
           </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#6B655E', fontWeight: 'bold', fontSize: '0.9rem' }}>Click Map to Plot Baseline Route</label>
-            <MapPicker points={baselinePoints} setPoints={setBaselinePoints} lineColor="#1E3F2B" />
+          <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: '900', color: '#111', textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+            {step === 1 ? 'Step 1: Define Baseline Route' : 'Step 2: Verify Trip Trajectory'}
+          </h2>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: '#FAFAFA', border: '1px solid #111', fontSize: '11px', fontWeight: '700', letterSpacing: '1px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1b3b2b', display: 'inline-block' }}></span>
+            SYSTEM ONLINE
           </div>
-
-          <button
-            type="submit"
-            style={{ padding: '16px', cursor: 'pointer', backgroundColor: '#1E3F2B', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px' }}
-          >
-            LOCK BASELINE PATH & PROCEED TO VERIFY
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={handleAnalyzeTrip} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {statusMsg && <div style={{ padding: '10px', background: '#F0FDF4', color: '#1E3F2B', borderRadius: '6px', fontWeight: 'bold' }}>{statusMsg}</div>}
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#6B655E', fontWeight: 'bold', fontSize: '0.9rem' }}>Trace Verification Path to Test for Anomalies</label>
-            <MapPicker points={verifyPoints} setPoints={setVerifyPoints} lineColor="#7A2021" />
-          </div>
-
-          <button
-            type="submit"
-            style={{ padding: '16px', cursor: 'pointer', backgroundColor: '#7A2021', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '1px' }}
-          >
-            ANALYZE VERIFICATION TRACE
-          </button>
-        </form>
-      )}
-
-      {/* Results Panel showing backend evaluation response details */}
-      {result && (
-        <div style={{ marginTop: '25px', padding: '20px', backgroundColor: result.is_anomaly ? '#FFF5F5' : '#F0FDF4', border: `2px solid ${result.is_anomaly ? '#7A2021' : '#1E3F2B'}`, borderRadius: '12px', textAlign: 'center' }}>
-          {result.is_anomaly ? (
-            <>
-              <h3 style={{ color: '#7A2021', fontSize: '1.6rem', margin: '0 0 10px 0', fontWeight: '900' }}>
-                ⚠️ ANOMALY DETECTED (Score: {result.anomaly_score})
-              </h3>
-              <p style={{ color: '#666', fontSize: '15px', margin: '0 0 10px 0' }}>
-                Confidence: {result.confidence}%
-              </p>
-              <div style={{ color: '#7A2021', fontSize: '13px', marginBottom: '20px', fontFamily: 'monospace' }}>
-                Reasons: {result.reasons?.join(', ')}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-                <button 
-                  type="button" 
-                  onClick={() => resetAll()}
-                  style={{ padding: '10px 20px', backgroundColor: '#FFF', color: '#1E3F2B', border: '2px solid #1E3F2B', cursor: 'pointer', fontWeight: 'bold', borderRadius: '8px' }}
-                >
-                  Approve Deviation
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => resetAll()}
-                  style={{ padding: '10px 20px', backgroundColor: '#7A2021', color: '#FFF', border: 'none', cursor: 'pointer', fontWeight: 'bold', borderRadius: '8px' }}
-                >
-                  Flag for Review
-                </button>
-              </div>
-            </>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
-              <h3 style={{ color: '#1E3F2B', fontSize: '1.5rem', margin: 0, fontWeight: '900' }}>
-                ✅ ROUTE VERIFIED: NORMAL (Score: {result.anomaly_score})
-              </h3>
-              <button 
-                type="button" 
-                onClick={() => resetAll()}
-                style={{ padding: '8px 16px', backgroundColor: '#1E3F2B', color: '#FFF', border: 'none', cursor: 'pointer', fontWeight: 'bold', borderRadius: '6px' }}
-              >
-                Test Another Route
-              </button>
-            </div>
+          {step === 2 && (
+            <button 
+              onClick={resetAll}
+              style={{ background: '#111', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', letterSpacing: '1px' }}
+            >
+              RESET SESSION
+            </button>
           )}
         </div>
-      )}
+      </div>
+
+      {/* Main Grid: Map & Controls */}
+      <div style={{ display: 'grid', gridTemplateColumns: result ? '1.5fr 1fr' : '1fr', gap: '30px', alignItems: 'start' }}>
+        
+        {/* Map Container */}
+        <div style={{ background: '#FFFFFF', padding: '30px', border: '1px solid #111', borderRadius: '16px' }}>
+          {step === 1 ? (
+            <form onSubmit={handleSaveBaseline} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#111', fontWeight: '700', fontSize: '0.8rem', letterSpacing: '1px' }}>ROUTE IDENTIFIER (ROUTE_ID)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., morning_commute"
+                  value={routeId}
+                  onChange={(e) => setRouteId(e.target.value)}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '14px', backgroundColor: '#FAFAFA', color: '#111', border: '1px solid #ddd', outline: 'none', fontWeight: '600' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#111', fontWeight: '700', fontSize: '0.8rem', letterSpacing: '1px' }}>CLICK MAP TO PLOT EXPECTED BASELINE</label>
+                <MapPicker points={baselinePoints} setPoints={setBaselinePoints} isInteractive={true} />
+              </div>
+
+              <button
+                type="submit"
+                style={{ padding: '16px', cursor: 'pointer', backgroundColor: '#111', color: '#fff', border: 'none', fontWeight: '700', fontSize: '0.85rem', letterSpacing: '1.5px', textTransform: 'uppercase' }}
+              >
+                LOCK BASELINE & PROCEED TO VERIFY →
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleAnalyzeTrip} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {statusMsg && <div style={{ padding: '12px', background: '#FAFAFA', color: '#111', border: '1px solid #111', fontWeight: '700', fontSize: '0.85rem' }}>{statusMsg}</div>}
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#111', fontWeight: '700', fontSize: '0.8rem', letterSpacing: '1px' }}>TRACE VERIFICATION PATH (OVERLAID ON BASELINE)</label>
+                <MapPicker 
+                  points={verifyPoints} 
+                  setPoints={setVerifyPoints} 
+                  baselinePoints={baselinePoints} 
+                  flaggedSegments={result?.flagged_segments || []}
+                  isInteractive={true} 
+                />
+              </div>
+
+              <button
+                type="submit"
+                style={{ padding: '16px', cursor: 'pointer', backgroundColor: '#111', color: '#fff', border: 'none', fontWeight: '700', fontSize: '0.85rem', letterSpacing: '1.5px', textTransform: 'uppercase' }}
+              >
+                EXECUTE ANOMALY EVALUATION
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* Right Panel: Explainable Anomaly Report & Route Health */}
+        {result && (
+          <div style={{ background: '#FFFFFF', padding: '30px', border: '1px solid #111', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
+            
+            {/* Health Score / Status Banner */}
+            <div style={{ padding: '20px', background: result.is_anomaly ? '#FFF5F5' : '#FAFAFA', border: `1px solid ${result.is_anomaly ? '#b71c1c' : '#111'}`, textAlign: 'center' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#666', letterSpacing: '1px', marginBottom: '5px' }}>EVALUATION STATUS</div>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '1.3rem', fontWeight: '900', color: result.is_anomaly ? '#b71c1c' : '#111', textTransform: 'uppercase' }}>
+                {result.is_anomaly ? '⚠️ ANOMALY DETECTED' : '✓ ROUTE VERIFIED NORMAL'}
+              </h3>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '0.85rem', fontWeight: '700' }}>
+                <span>SCORE: {result.anomaly_score}</span>
+                <span>CONFIDENCE: {result.confidence}%</span>
+              </div>
+            </div>
+
+            {/* Explainable Reasons */}
+            <div>
+              <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#666', letterSpacing: '1px', marginBottom: '10px', textTransform: 'uppercase' }}>Diagnostic Analysis</div>
+              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.9rem', color: '#333', lineHeight: '1.6' }}>
+                {result.reasons?.map((reason, idx) => (
+                  <li key={idx} style={{ marginBottom: '6px', fontWeight: '600' }}>{reason}</li>
+                )) || <li>Trajectory matches standard spatial distribution.</li>}
+              </ul>
+            </div>
+
+            {/* Turn Sequence Comparison */}
+            {(result.turns_expected || result.turns_observed) && (
+              <div style={{ background: '#FAFAFA', padding: '20px', border: '1px solid #ddd' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: '700', color: '#666', letterSpacing: '1px', marginBottom: '12px', textTransform: 'uppercase' }}>Turn Sequence Check</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '0.8rem' }}>
+                  <div>
+                    <div style={{ fontWeight: '700', color: '#666', marginBottom: '4px' }}>EXPECTED</div>
+                    <div style={{ fontFamily: 'monospace', background: '#fff', padding: '8px', border: '1px solid #ddd' }}>
+                      {result.turns_expected?.join(' → ') || 'None'}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: '700', color: '#666', marginBottom: '4px' }}>OBSERVED</div>
+                    <div style={{ fontFamily: 'monospace', background: '#fff', padding: '8px', border: '1px solid #ddd' }}>
+                      {result.turns_observed?.join(' → ') || 'None'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button 
+              onClick={() => setResult(null)}
+              style={{ padding: '12px', background: '#111', color: '#fff', border: 'none', fontWeight: '700', fontSize: '0.8rem', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase' }}
+            >
+              Clear Analysis
+            </button>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
