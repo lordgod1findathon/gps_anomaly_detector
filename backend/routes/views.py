@@ -18,7 +18,6 @@ def create_base_route(request):
     return Response({"message": f"Base route '{data['route_id']}' saved successfully."})
 
 @api_view(['POST'])
-@api_view(['POST'])
 def evaluate_trip(request):
     data = request.data
     route_id = data.get('route_id')

@@ -3,4 +3,5 @@ djangorestframework
 pymongo
 django-cors-headers
 numpy
-
+fastdtw
+scipy
