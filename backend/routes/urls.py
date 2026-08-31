@@ -6,3 +6,4 @@ urlpatterns = [
     path('evaluate/', views.evaluate_trip, name='evaluate_trip'),
     path('history/<str:route_id>/', views.get_trip_history, name='get_trip_history'),
 ]
+
